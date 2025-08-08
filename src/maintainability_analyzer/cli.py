@@ -19,6 +19,8 @@ def main():
             language = 'c'
         elif args.file.endswith('.java'):
             language = 'java'
+        elif args.file.endswith('.cs'):
+            language = 'csharp'
         else:
             print("Could not guess the language from the file extension. Please provide it with the -l/--language flag.")
             return
