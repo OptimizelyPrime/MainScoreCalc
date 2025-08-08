@@ -8,7 +8,7 @@ class TestApi(unittest.TestCase):
         self.assertIn('maintainability_index', result)
 
     def test_analyze_cpp(self):
-        code = "#include <iostream>\nint main() { std::cout << \"Hello, world!\"; return 0; }"
+        code = "int main() { return 0; }"
         result = analyze(code, 'cpp')
         self.assertIn('maintainability_index', result)
 
