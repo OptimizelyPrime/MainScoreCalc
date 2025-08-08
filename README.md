@@ -49,15 +49,24 @@ First, import the `analyze` function:
 from maintainability_analyzer import analyze
 ```
 
-Then, call the a function with your source code and the language:
+Then, call the function with your source code. You can either specify the language explicitly, or provide a filepath to let the tool guess the language from the file extension.
 
+**Example 1: Specifying the language**
 ```python
 source_code = """
 def hello_world():
     print("Hello, World!")
 """
 
-metrics = analyze(source_code, 'python')
+metrics = analyze(source_code, language='python')
+print(metrics)
+```
+
+**Example 2: Guessing the language from the filepath**
+```python
+source_code = "int main() { return 0; }"
+
+metrics = analyze(source_code, filepath='main.cpp')
 print(metrics)
 ```
 

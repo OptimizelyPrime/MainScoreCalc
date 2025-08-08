@@ -9,26 +9,14 @@ def main():
 
     args = parser.parse_args()
 
-    language = args.language
-    if not language:
-        if args.file.endswith('.py'):
-            language = 'python'
-        elif args.file.endswith('.cpp') or args.file.endswith('.hpp'):
-            language = 'cpp'
-        elif args.file.endswith('.c') or args.file.endswith('.h'):
-            language = 'c'
-        elif args.file.endswith('.java'):
-            language = 'java'
-        elif args.file.endswith('.cs'):
-            language = 'csharp'
-        else:
-            print("Could not guess the language from the file extension. Please provide it with the -l/--language flag.")
-            return
-
     with open(args.file, 'r') as f:
         source_code = f.read()
 
-    results = analyze(source_code, language)
+    try:
+        results = analyze(source_code, language=args.language, filepath=args.file)
+    except ValueError as e:
+        print(f"Error: {e}")
+        return
 
     print(json.dumps(results, indent=4))
 
