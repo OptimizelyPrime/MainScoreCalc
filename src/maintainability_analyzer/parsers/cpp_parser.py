@@ -28,7 +28,19 @@ class CPPParser:
 def analyze_cpp_code(source_code, lang='cpp'):
     index = cindex.Index.create()
     unsaved_files = [('tmp.cpp' if lang == 'cpp' else 'tmp.c', source_code)]
-    args = ['-std=c++11'] if lang == 'cpp' else []
+    if lang == 'cpp':
+        args = [
+            '-std=c++11',
+            '-I/usr/include/c++/13',
+            '-I/usr/include/x86_64-linux-gnu/c++/13',
+            '-I/usr/include/c++/13/backward',
+            '-I/usr/lib/llvm-18/lib/clang/18/include',
+            '-I/usr/local/include',
+            '-I/usr/include/x86_64-linux-gnu',
+            '-I/usr/include',
+        ]
+    else:
+        args = []
     tu = index.parse('tmp.cpp' if lang == 'cpp' else 'tmp.c', args=args, unsaved_files=unsaved_files)
 
     if tu.diagnostics:

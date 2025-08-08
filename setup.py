@@ -8,4 +8,9 @@ setup(
         "libclang",
         "javalang",
     ],
+    entry_points={
+        "console_scripts": [
+            "maintainability-analyzer=maintainability_analyzer.cli:main",
+        ],
+    },
 )
