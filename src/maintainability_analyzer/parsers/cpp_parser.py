@@ -1,7 +1,7 @@
 from clang import cindex
 
 # You might need to set this to the location of libclang.so if it's not in your system's path
-# cindex.Config.set_library_file('/usr/lib/x86_64-linux-gnu/libclang-18.so.1')
+cindex.Config.set_library_file('/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/clang/native/libclang.so')
 
 class CPPParser:
     def __init__(self):
@@ -31,7 +31,12 @@ class CPPParser:
 def analyze_cpp_code(source_code, lang='cpp'):
     index = cindex.Index.create()
     unsaved_files = [('tmp.cpp' if lang == 'cpp' else 'tmp.c', source_code)]
-    tu = index.parse('tmp.cpp' if lang == 'cpp' else 'tmp.c', unsaved_files=unsaved_files)
+    args = ['-std=c++11', '-I/usr/lib/llvm-18/lib/clang/18/include'] if lang == 'cpp' else []
+    tu = index.parse('tmp.cpp' if lang == 'cpp' else 'tmp.c', args=args, unsaved_files=unsaved_files)
+
+    if tu.diagnostics:
+        for diag in tu.diagnostics:
+            print(diag)
 
     parser = CPPParser()
     parser.traverse(tu.cursor)
