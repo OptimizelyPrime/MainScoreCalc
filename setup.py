@@ -9,5 +9,9 @@ setup(
         "libclang",
         "javalang",
     ],
+    include_package_data=True,
+    package_data={
+        "maintainability_analyzer": ["copilot_instructions.txt"],
+    },
     # CLI functionality removed
 )
