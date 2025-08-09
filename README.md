@@ -2,39 +2,33 @@
 
 A command-line tool to analyze source code files and calculate maintainability metrics.
 
-## Features
-
-This tool calculates the following metrics for a given source code file:
-
-*   **Lines of Code:** The total number of lines in the file.
-*   **Halstead Volume:** A metric that measures the complexity of a program.
-*   **Cyclomatic Complexity:** A software metric used to indicate the complexity of a program.
-*   **Maintainability Index:** A single value index that indicates the overall maintainability of the code.
-
-## Installation
-
-You can install the `maintainability-analyzer` using pip:
-
-```bash
-pip install .
 ```
 
 ## Usage
 
-To analyze a file, run the `maintainability-analyzer` command, followed by the path to the file:
+## Using as an Importable Module
 
-```bash
-maintainability-analyzer path/to/your/code.py
-```
+You can use `maintainability-analyzer` as a Python library in your own code after installing it:
 
-The tool will output a JSON object containing the calculated metrics.
+```python
+# Import the analyze function from the installed package
+from maintainability_analyzer.core import analyze
 
-### Specify Language
-
-You can also specify the programming language using the `-l` or `--language` flag:
+# Example 1: Analyze Python code by specifying the language
+source_code = """
 
 ```bash
 maintainability-analyzer path/to/your/code.c -l c
+metrics = analyze(source_code, language='python')
+print(metrics)
+
+# Example 2: Analyze code and let the tool guess the language from the file extension
+source_code = "int main() { return 0; }"
+metrics = analyze(source_code, filepath='main.cpp')
+print(metrics)
+```
+
+The `analyze` function returns a dictionary with the calculated metrics. You can specify the language directly or let the tool infer it from the file extension using the `filepath` argument.
 ```
 
 If the language is not provided, the tool will try to guess it based on the file extension.
