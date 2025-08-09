@@ -8,6 +8,8 @@ class JavaParser:
         self.decision_points = 0
         self.visited_nodes = set()
         self.method_decision_points = {}  # {method_name: decision_points}
+        self.method_operators = {}  # {method_name: [operators]}
+        self.method_operands = {}   # {method_name: [operands]}
         self.current_method = None
 
     def traverse(self, node):
@@ -20,7 +22,11 @@ class JavaParser:
             prev_method = self.current_method
             self.current_method = node.name
             prev_decision_points = self.decision_points
+            prev_operators = self.operators
+            prev_operands = self.operands
             self.decision_points = 0
+            self.operators = []
+            self.operands = []
             # Visit method body
             for attr_name in dir(node):
                 if not attr_name.startswith('_'):
@@ -35,7 +41,11 @@ class JavaParser:
                         self.traverse(attr)
             # Store result (+1 for method itself)
             self.method_decision_points[node.name] = self.decision_points + 1
+            self.method_operators[node.name] = list(self.operators)
+            self.method_operands[node.name] = list(self.operands)
             self.decision_points = prev_decision_points
+            self.operators = prev_operators
+            self.operands = prev_operands
             self.current_method = prev_method
             return
 
@@ -74,4 +84,12 @@ def analyze_java_code(source_code):
     parser = JavaParser()
     parser.traverse(tree)
     total_decision_points = sum(parser.method_decision_points.values()) if parser.method_decision_points else parser.decision_points
-    return parser.operators, parser.operands, total_decision_points, parser.method_decision_points
+    # Return per-method operators/operands/decision_points for function-level metrics
+    return (
+        parser.operators,
+        parser.operands,
+        total_decision_points,
+        parser.method_decision_points,
+        parser.method_operators,
+        parser.method_operands,
+    )

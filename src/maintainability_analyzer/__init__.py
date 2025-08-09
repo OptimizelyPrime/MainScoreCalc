@@ -21,20 +21,33 @@ def analyze(source_code, language=None, filepath=None):
         if language is None:
             raise ValueError(f"Could not guess language from file extension of {filepath}")
 
-    per_function_cyclomatic = None
+    def _function_metrics(decision_points, operators, operands):
+        function_metrics = {}
+        for func in decision_points:
+            metrics = Metrics('')
+            metrics.calculate_lines_of_code = lambda: None
+            metrics.lines_of_code = 1  # Default to 1 if not available
+            metrics.calculate_halstead_volume(operators[func], operands[func])
+            metrics.calculate_cyclomatic_complexity(decision_points[func] - 1)
+            metrics.calculate_maintainability_index()
+            function_metrics[func] = {
+                "halstead_volume": metrics.halstead_volume,
+                "cyclomatic_complexity": metrics.cyclomatic_complexity,
+                "maintainability_index": metrics.maintainability_index,
+            }
+        return function_metrics
+
     if language == 'python':
-        operators, operands, decision_points, per_function_cyclomatic = analyze_python_code(source_code)
+        _, _, _, function_decision_points, function_operators, function_operands = analyze_python_code(source_code)
+        return _function_metrics(function_decision_points, function_operators, function_operands)
     elif language in ['cpp', 'c']:
-        operators, operands, decision_points, per_function_cyclomatic = analyze_cpp_code(source_code, lang=language)
+        _, _, _, function_decision_points, function_operators, function_operands = analyze_cpp_code(source_code, lang=language)
+        return _function_metrics(function_decision_points, function_operators, function_operands)
     elif language == 'java':
-        operators, operands, decision_points, per_function_cyclomatic = analyze_java_code(source_code)
+        _, _, _, method_decision_points, method_operators, method_operands = analyze_java_code(source_code)
+        return _function_metrics(method_decision_points, method_operators, method_operands)
     elif language == 'csharp':
-        operators, operands, decision_points, per_function_cyclomatic = analyze_csharp_code(source_code)
+        _, _, _, method_decision_points, method_operators, method_operands = analyze_csharp_code(source_code)
+        return _function_metrics(method_decision_points, method_operators, method_operands)
     else:
         raise ValueError(f"Unsupported language: {language}")
-
-    metrics = Metrics(source_code)
-    result = metrics.analyze(operators, operands, decision_points)
-    if per_function_cyclomatic is not None:
-        result["cyclomatic_complexity_by_function"] = per_function_cyclomatic
-    return result

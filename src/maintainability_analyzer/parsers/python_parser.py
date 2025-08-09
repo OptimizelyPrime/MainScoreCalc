@@ -7,6 +7,8 @@ class PythonParser(ast.NodeVisitor):
         self.operands = []
         self.decision_points = 0
         self.function_decision_points = {}  # {function_name: decision_points}
+        self.function_operators = {}  # {function_name: [operators]}
+        self.function_operands = {}   # {function_name: [operands]}
         self.current_function = None
 
     def visit_BinOp(self, node):
@@ -55,16 +57,24 @@ class PythonParser(ast.NodeVisitor):
     def visit_FunctionDef(self, node):
         prev_function = self.current_function
         self.current_function = node.name
-        # Save previous count, start new for this function
+        # Save previous state, start new for this function
         prev_decision_points = self.decision_points
+        prev_operators = self.operators
+        prev_operands = self.operands
         self.decision_points = 0
+        self.operators = []
+        self.operands = []
         # Visit function body
         for stmt in node.body:
             self.visit(stmt)
         # Store result
         self.function_decision_points[node.name] = self.decision_points + 1  # +1 for function itself
+        self.function_operators[node.name] = list(self.operators)
+        self.function_operands[node.name] = list(self.operands)
         # Restore previous state
         self.decision_points = prev_decision_points
+        self.operators = prev_operators
+        self.operands = prev_operands
         self.current_function = prev_function
         return node
 
@@ -133,4 +143,12 @@ def analyze_python_code(source_code):
     parser.visit(tree)
     # For backward compatibility, also return total decision points
     total_decision_points = sum(parser.function_decision_points.values()) if parser.function_decision_points else parser.decision_points
-    return parser.operators, parser.operands, total_decision_points, parser.function_decision_points
+    # Return per-function operators/operands/decision_points for function-level metrics
+    return (
+        parser.operators,
+        parser.operands,
+        total_decision_points,
+        parser.function_decision_points,
+        parser.function_operators,
+        parser.function_operands,
+    )
