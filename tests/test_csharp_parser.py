@@ -33,7 +33,7 @@ class Program
     }
 }
 """
-        operators, operands, decision_points = analyze_csharp_code(source_code)
+        operators, operands, decision_points, cyclomatic_by_func = analyze_csharp_code(source_code)
 
         expected_operators = ['=', '=', '>', '=', '<', '++', '++']
         expected_operands = [
@@ -45,7 +45,9 @@ class Program
         # Sort for comparison, as order doesn't matter for Halstead metrics
         self.assertCountEqual(expected_operators, operators)
         self.assertCountEqual(expected_operands, operands)
-        self.assertEqual(2, decision_points)
+        self.assertIn('Main', cyclomatic_by_func)
+        self.assertEqual(cyclomatic_by_func['Main'], 3)  # 2 decision points + 1
+        self.assertEqual(3, decision_points)
 
 if __name__ == "__main__":
     unittest.main()

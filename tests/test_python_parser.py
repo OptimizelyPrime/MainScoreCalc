@@ -10,7 +10,7 @@ def factorial(n):
     else:
         return n * factorial(n - 1)
 """
-        operators, operands, decision_points = analyze_python_code(code)
+        operators, operands, decision_points, cyclomatic_by_func = analyze_python_code(code)
 
         # This is a simplified check. A more thorough test would be needed for a real-world scenario.
         self.assertIn("Eq", operators)
@@ -20,7 +20,9 @@ def factorial(n):
         self.assertIn("n", operands)
         self.assertIn(0, operands)
         self.assertIn(1, operands)
-        self.assertEqual(decision_points, 1)
+        self.assertEqual(decision_points, 2)  # 1 function, 1 decision point, so 2
+        self.assertIn('factorial', cyclomatic_by_func)
+        self.assertEqual(cyclomatic_by_func['factorial'], 2)
 
 if __name__ == "__main__":
     unittest.main()

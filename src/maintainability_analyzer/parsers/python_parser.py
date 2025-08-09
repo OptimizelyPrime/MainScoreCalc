@@ -1,10 +1,13 @@
 import ast
 
+
 class PythonParser(ast.NodeVisitor):
     def __init__(self):
         self.operators = []
         self.operands = []
         self.decision_points = 0
+        self.function_decision_points = {}  # {function_name: decision_points}
+        self.current_function = None
 
     def visit_BinOp(self, node):
         self.operators.append(type(node.op).__name__)
@@ -47,6 +50,22 @@ class PythonParser(ast.NodeVisitor):
 
     def visit_Str(self, node): # For older python versions
         self.operands.append(node.s)
+        return node
+
+    def visit_FunctionDef(self, node):
+        prev_function = self.current_function
+        self.current_function = node.name
+        # Save previous count, start new for this function
+        prev_decision_points = self.decision_points
+        self.decision_points = 0
+        # Visit function body
+        for stmt in node.body:
+            self.visit(stmt)
+        # Store result
+        self.function_decision_points[node.name] = self.decision_points + 1  # +1 for function itself
+        # Restore previous state
+        self.decision_points = prev_decision_points
+        self.current_function = prev_function
         return node
 
     def visit_If(self, node):
@@ -112,4 +131,6 @@ def analyze_python_code(source_code):
     tree = ast.parse(source_code)
     parser = PythonParser()
     parser.visit(tree)
-    return parser.operators, parser.operands, parser.decision_points
+    # For backward compatibility, also return total decision points
+    total_decision_points = sum(parser.function_decision_points.values()) if parser.function_decision_points else parser.decision_points
+    return parser.operators, parser.operands, total_decision_points, parser.function_decision_points
