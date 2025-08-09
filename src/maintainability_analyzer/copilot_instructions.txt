@@ -1,0 +1,33 @@
+# Copilot Instructions
+
+This file contains special instructions or metadata for GitHub Copilot or other AI assistants.
+
+- Ensure this file is included in the source distribution and wheel.
+- You can add any project-specific guidance, usage notes, or metadata here.
+
+## Usage Instructions for Copilot
+
+To use this library with GitHub Copilot:
+
+1. Install the package in your Python environment:
+	```bash
+	pip install maintainability-analyzer
+	```
+	Or, for the latest version from GitHub:
+	```bash
+	pip install git+https://github.com/OptimizelyPrime/MainScoreCalc.git
+	```
+
+2. Import and use the main API in your code:
+	```python
+	from maintainability_analyzer import analyze
+
+	source_code = """
+	def hello():
+		 print("Hello, world!")
+	"""
+	metrics = analyze(source_code, language="python")
+	print(metrics)
+	```
+
+3. Copilot can help you generate code that uses this API, suggest usage patterns, and provide docstrings or comments based on the exposed functions and classes.
