@@ -21,16 +21,20 @@ def analyze(source_code, language=None, filepath=None):
         if language is None:
             raise ValueError(f"Could not guess language from file extension of {filepath}")
 
+    per_function_cyclomatic = None
     if language == 'python':
-        operators, operands, decision_points = analyze_python_code(source_code)
+        operators, operands, decision_points, per_function_cyclomatic = analyze_python_code(source_code)
     elif language in ['cpp', 'c']:
-        operators, operands, decision_points = analyze_cpp_code(source_code, lang=language)
+        operators, operands, decision_points, per_function_cyclomatic = analyze_cpp_code(source_code, lang=language)
     elif language == 'java':
-        operators, operands, decision_points = analyze_java_code(source_code)
+        operators, operands, decision_points, per_function_cyclomatic = analyze_java_code(source_code)
     elif language == 'csharp':
-        operators, operands, decision_points = analyze_csharp_code(source_code)
+        operators, operands, decision_points, per_function_cyclomatic = analyze_csharp_code(source_code)
     else:
         raise ValueError(f"Unsupported language: {language}")
 
     metrics = Metrics(source_code)
-    return metrics.analyze(operators, operands, decision_points)
+    result = metrics.analyze(operators, operands, decision_points)
+    if per_function_cyclomatic is not None:
+        result["cyclomatic_complexity_by_function"] = per_function_cyclomatic
+    return result
