@@ -1,6 +1,7 @@
 import re
 
 
+
 def analyze_csharp_code(source_code):
     """
     Analyzes C# source code to extract operators, operands, and decision points.
@@ -23,10 +24,12 @@ def analyze_csharp_code(source_code):
     decision_points = re.findall(decision_points_regex, code)
     operands = [op for op in operands if op and op not in keywords]
 
-    # Per-method cyclomatic complexity (best effort)
+    # Per-method metrics (best effort)
     method_regex = re.compile(r'(?:public|private|protected|internal|static|virtual|override|sealed|async|\s)*[\w<>\[\]]+\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\([^)]*\)\s*\{', re.MULTILINE)
     method_iter = list(method_regex.finditer(code))
     cyclomatic_by_method = {}
+    method_operators = {}
+    method_operands = {}
     for idx, match in enumerate(method_iter):
         method_name = match.group(1)
         start = match.end()
@@ -38,6 +41,18 @@ def analyze_csharp_code(source_code):
         # Count decision points in method body
         method_decision_points = re.findall(decision_points_regex, method_body)
         cyclomatic_by_method[method_name] = len(method_decision_points) + 1
+        # Operators and operands in method body
+        method_operators[method_name] = re.findall(operators_regex, method_body)
+        ops = re.findall(operands_regex, method_body)
+        method_operands[method_name] = [op for op in ops if op and op not in keywords]
 
     total_decision_points = sum(cyclomatic_by_method.values()) if cyclomatic_by_method else len(decision_points)
-    return operators, operands, total_decision_points, cyclomatic_by_method
+    # Return per-method operators/operands/decision_points for function-level metrics
+    return (
+        operators,
+        operands,
+        total_decision_points,
+        cyclomatic_by_method,
+        method_operators,
+        method_operands,
+    )
