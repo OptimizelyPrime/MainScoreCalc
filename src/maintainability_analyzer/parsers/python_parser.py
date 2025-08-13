@@ -2,13 +2,16 @@ import ast
 
 
 class PythonParser(ast.NodeVisitor):
-    def __init__(self):
+    def __init__(self, source_code):
+        self.source_code = source_code
         self.operators = []
         self.operands = []
         self.decision_points = 0
         self.function_decision_points = {}  # {function_name: decision_points}
         self.function_operators = {}  # {function_name: [operators]}
         self.function_operands = {}   # {function_name: [operands]}
+        # Track only the number of lines per function, not the lines themselves
+        self.function_line_counts = {}  # {function_name: line_count}
         self.current_function = None
 
     def visit_BinOp(self, node):
@@ -71,6 +74,14 @@ class PythonParser(ast.NodeVisitor):
         self.function_decision_points[node.name] = self.decision_points + 1  # +1 for function itself
         self.function_operators[node.name] = list(self.operators)
         self.function_operands[node.name] = list(self.operands)
+        # Calculate lines of code for the function
+        if hasattr(node, "end_lineno") and node.end_lineno is not None:
+            lines = node.end_lineno - node.lineno + 1
+        else:
+            segment = ast.get_source_segment(self.source_code, node) or ""
+            lines = len(segment.splitlines())
+        # Only store the count to avoid returning source code lines
+        self.function_line_counts[node.name] = lines
         # Restore previous state
         self.decision_points = prev_decision_points
         self.operators = prev_operators
@@ -139,10 +150,14 @@ class PythonParser(ast.NodeVisitor):
 
 def analyze_python_code(source_code):
     tree = ast.parse(source_code)
-    parser = PythonParser()
+    parser = PythonParser(source_code)
     parser.visit(tree)
     # For backward compatibility, also return total decision points
-    total_decision_points = sum(parser.function_decision_points.values()) if parser.function_decision_points else parser.decision_points
+    total_decision_points = (
+        sum(parser.function_decision_points.values())
+        if parser.function_decision_points
+        else parser.decision_points
+    )
     # Return per-function operators/operands/decision_points for function-level metrics
     return (
         parser.operators,
@@ -151,4 +166,5 @@ def analyze_python_code(source_code):
         parser.function_decision_points,
         parser.function_operators,
         parser.function_operands,
+        parser.function_line_counts,
     )

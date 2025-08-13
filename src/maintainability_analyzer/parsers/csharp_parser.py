@@ -30,14 +30,18 @@ def analyze_csharp_code(source_code):
     cyclomatic_by_method = {}
     method_operators = {}
     method_operands = {}
+    # Keep only line counts for each method
+    method_line_counts = {}
     for idx, match in enumerate(method_iter):
         method_name = match.group(1)
-        start = match.end()
+        start_decl = match.start()
+        start_body = match.end()
         if idx + 1 < len(method_iter):
             end = method_iter[idx + 1].start()
         else:
             end = len(code)
-        method_body = code[start:end]
+        method_body = code[start_body:end]
+        full_method = code[start_decl:end]
         # Count decision points in method body
         method_decision_points = re.findall(decision_points_regex, method_body)
         cyclomatic_by_method[method_name] = len(method_decision_points) + 1
@@ -45,6 +49,7 @@ def analyze_csharp_code(source_code):
         method_operators[method_name] = re.findall(operators_regex, method_body)
         ops = re.findall(operands_regex, method_body)
         method_operands[method_name] = [op for op in ops if op and op not in keywords]
+        method_line_counts[method_name] = full_method.count('\n') + 1
 
     total_decision_points = sum(cyclomatic_by_method.values()) if cyclomatic_by_method else len(decision_points)
     # Return per-method operators/operands/decision_points for function-level metrics
@@ -55,4 +60,5 @@ def analyze_csharp_code(source_code):
         cyclomatic_by_method,
         method_operators,
         method_operands,
+        method_line_counts,
     )
