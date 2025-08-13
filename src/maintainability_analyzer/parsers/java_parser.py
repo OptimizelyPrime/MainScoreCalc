@@ -2,7 +2,9 @@ import javalang
 
 
 class JavaParser:
-    def __init__(self):
+    def __init__(self, source_code):
+        self.source_code = source_code
+        self.source_lines = source_code.splitlines()
         self.operators = []
         self.operands = []
         self.decision_points = 0
@@ -10,6 +12,8 @@ class JavaParser:
         self.method_decision_points = {}  # {method_name: decision_points}
         self.method_operators = {}  # {method_name: [operators]}
         self.method_operands = {}   # {method_name: [operands]}
+        # Only store line counts for each method
+        self.method_line_counts = {}  # {method_name: line_count}
         self.current_method = None
 
     def traverse(self, node):
@@ -24,6 +28,7 @@ class JavaParser:
             prev_decision_points = self.decision_points
             prev_operators = self.operators
             prev_operands = self.operands
+            start_line = node.position[0] if node.position else 0
             self.decision_points = 0
             self.operators = []
             self.operands = []
@@ -43,6 +48,20 @@ class JavaParser:
             self.method_decision_points[node.name] = self.decision_points + 1
             self.method_operators[node.name] = list(self.operators)
             self.method_operands[node.name] = list(self.operands)
+            # Calculate lines of code using brace matching on source lines
+            start_idx = start_line - 1 if start_line > 0 else 0
+            brace_count = 0
+            end_idx = start_idx
+            for idx in range(start_idx, len(self.source_lines)):
+                line = self.source_lines[idx]
+                if '{' in line:
+                    brace_count += line.count('{')
+                if '}' in line:
+                    brace_count -= line.count('}')
+                if brace_count == 0 and idx > start_idx:
+                    end_idx = idx
+                    break
+            self.method_line_counts[node.name] = end_idx - start_idx + 1
             self.decision_points = prev_decision_points
             self.operators = prev_operators
             self.operands = prev_operands
@@ -81,9 +100,13 @@ class JavaParser:
 
 def analyze_java_code(source_code):
     tree = javalang.parse.parse(source_code)
-    parser = JavaParser()
+    parser = JavaParser(source_code)
     parser.traverse(tree)
-    total_decision_points = sum(parser.method_decision_points.values()) if parser.method_decision_points else parser.decision_points
+    total_decision_points = (
+        sum(parser.method_decision_points.values())
+        if parser.method_decision_points
+        else parser.decision_points
+    )
     # Return per-method operators/operands/decision_points for function-level metrics
     return (
         parser.operators,
@@ -92,4 +115,5 @@ def analyze_java_code(source_code):
         parser.method_decision_points,
         parser.method_operators,
         parser.method_operands,
+        parser.method_line_counts,
     )

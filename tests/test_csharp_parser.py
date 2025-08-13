@@ -33,9 +33,17 @@ class Program
     }
 }
 """
-        operators, operands, total_decision_points, method_decision_points, method_operators, method_operands = analyze_csharp_code(source_code)
+        (
+            operators,
+            operands,
+            total_decision_points,
+            method_decision_points,
+            method_operators,
+            method_operands,
+            method_line_counts,
+        ) = analyze_csharp_code(source_code)
 
-        print('DEBUG analyze_csharp_code:', operators, operands, total_decision_points, method_decision_points, method_operators, method_operands)
+        print('DEBUG analyze_csharp_code:', operators, operands, total_decision_points, method_decision_points, method_operators, method_operands, method_line_counts)
 
         # Check per-method metrics only
         self.assertIn('Main', method_decision_points)
@@ -47,6 +55,8 @@ class Program
             self.assertIn(op, method_operators['Main'])
         for operand in ['a', 'b', 'i', '10']:
             self.assertIn(operand, method_operands['Main'])
+        self.assertIn('Main', method_line_counts)
+        self.assertGreater(method_line_counts['Main'], 0)
 
 if __name__ == "__main__":
     unittest.main()

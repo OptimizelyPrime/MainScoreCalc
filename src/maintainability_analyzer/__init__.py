@@ -21,16 +21,17 @@ def analyze(source_code, language=None, filepath=None):
         if language is None:
             raise ValueError(f"Could not guess language from file extension of {filepath}")
 
-    def _function_metrics(decision_points, operators, operands):
+    def _function_metrics(decision_points, operators, operands, line_counts):
         function_metrics = {}
         for func in decision_points:
-            metrics = Metrics('')
-            metrics.calculate_lines_of_code = lambda: None
-            metrics.lines_of_code = 1  # Default to 1 if not available
+            metrics = Metrics("")
+            # Store only the count of lines for each function
+            metrics.lines_of_code = line_counts.get(func, 0)
             metrics.calculate_halstead_volume(operators[func], operands[func])
             metrics.calculate_cyclomatic_complexity(decision_points[func] - 1)
             metrics.calculate_maintainability_index()
             function_metrics[func] = {
+                "lines_of_code": metrics.lines_of_code,
                 "halstead_volume": metrics.halstead_volume,
                 "cyclomatic_complexity": metrics.cyclomatic_complexity,
                 "maintainability_index": metrics.maintainability_index,
@@ -38,16 +39,40 @@ def analyze(source_code, language=None, filepath=None):
         return function_metrics
 
     if language == 'python':
-        _, _, _, function_decision_points, function_operators, function_operands = analyze_python_code(source_code)
-        return _function_metrics(function_decision_points, function_operators, function_operands)
+        _, _, _, function_decision_points, function_operators, function_operands, function_line_counts = analyze_python_code(source_code)
+        return _function_metrics(function_decision_points, function_operators, function_operands, function_line_counts)
     elif language in ['cpp', 'c']:
-        _, _, _, function_decision_points, function_operators, function_operands = analyze_cpp_code(source_code, lang=language)
-        return _function_metrics(function_decision_points, function_operators, function_operands)
+        (
+            _,
+            _,
+            _,
+            function_decision_points,
+            function_operators,
+            function_operands,
+            function_line_counts,
+        ) = analyze_cpp_code(source_code, lang=language)
+        return _function_metrics(function_decision_points, function_operators, function_operands, function_line_counts)
     elif language == 'java':
-        _, _, _, method_decision_points, method_operators, method_operands = analyze_java_code(source_code)
-        return _function_metrics(method_decision_points, method_operators, method_operands)
+        (
+            _,
+            _,
+            _,
+            method_decision_points,
+            method_operators,
+            method_operands,
+            method_line_counts,
+        ) = analyze_java_code(source_code)
+        return _function_metrics(method_decision_points, method_operators, method_operands, method_line_counts)
     elif language == 'csharp':
-        _, _, _, method_decision_points, method_operators, method_operands = analyze_csharp_code(source_code)
-        return _function_metrics(method_decision_points, method_operators, method_operands)
+        (
+            _,
+            _,
+            _,
+            method_decision_points,
+            method_operators,
+            method_operands,
+            method_line_counts,
+        ) = analyze_csharp_code(source_code)
+        return _function_metrics(method_decision_points, method_operators, method_operands, method_line_counts)
     else:
         raise ValueError(f"Unsupported language: {language}")
