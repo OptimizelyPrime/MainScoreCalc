@@ -9,6 +9,8 @@ class CPPParser:
         self.function_decision_points = {}  # {function_name: decision_points}
         self.function_operators = {}  # {function_name: [operators]}
         self.function_operands = {}   # {function_name: [operands]}
+        # Only keep a count of lines per function
+        self.function_line_counts = {}  # {function_name: line_count}
         self.current_function = None
 
     def traverse(self, node):
@@ -29,6 +31,10 @@ class CPPParser:
             self.function_decision_points[node.spelling] = self.decision_points + 1
             self.function_operators[node.spelling] = list(self.operators)
             self.function_operands[node.spelling] = list(self.operands)
+            # Calculate lines of code
+            extent = node.extent
+            lines = extent.end.line - extent.start.line + 1
+            self.function_line_counts[node.spelling] = lines
             # Restore previous state
             self.decision_points = prev_decision_points
             self.operators = prev_operators
@@ -95,7 +101,11 @@ def analyze_cpp_code(source_code, lang='cpp'):
     parser.traverse(tu.cursor)
 
     # For backward compatibility, also return total decision points
-    total_decision_points = sum(parser.function_decision_points.values()) if parser.function_decision_points else parser.decision_points
+    total_decision_points = (
+        sum(parser.function_decision_points.values())
+        if parser.function_decision_points
+        else parser.decision_points
+    )
     # Return per-function operators/operands/decision_points for function-level metrics
     return (
         parser.operators,
@@ -104,4 +114,5 @@ def analyze_cpp_code(source_code, lang='cpp'):
         parser.function_decision_points,
         parser.function_operators,
         parser.function_operands,
+        parser.function_line_counts,
     )

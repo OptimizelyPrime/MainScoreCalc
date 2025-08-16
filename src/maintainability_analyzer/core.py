@@ -39,7 +39,17 @@ class Metrics:
             self.maintainability_index = 100
             return
 
-        mi = 171 - 5.2 * math.log(self.halstead_volume) - 0.23 * self.cyclomatic_complexity - 16.2 * math.log(self.lines_of_code)
+        # Apply a piecewise penalty for lines of code
+        if self.lines_of_code <= 20:
+            loc_penalty = 0
+        elif self.lines_of_code <= 100:
+            weight = (self.lines_of_code - 20) / 80
+            loc_penalty = 16.2 * weight * math.log(self.lines_of_code)
+        else:
+            # Maximum penalty reached at 100 lines
+            loc_penalty = 16.2 * math.log(100)
+
+        mi = 171 - 5.2 * math.log(self.halstead_volume) - 0.23 * self.cyclomatic_complexity - loc_penalty
         self.maintainability_index = max(0, mi * 100 / 171)
 
     def analyze(self, operators, operands, decision_points):
