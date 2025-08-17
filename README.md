@@ -2,7 +2,17 @@
 
 A command-line tool to analyze source code files and calculate maintainability metrics.
 
+### Maintainability Index Formula
+
+The analyzer reports a maintainability index on a 0–100 scale using the
+standard definition popularized by Microsoft:
+
 ```
+MI = MAX(0, (171 - 5.2 * ln(V) - 0.23 * G - 16.2 * ln(L)) * 100 / 171)
+```
+
+Where ``V`` is the Halstead volume, ``G`` the cyclomatic complexity and ``L`` the
+number of lines of code. Higher scores imply more maintainable code.
 
 ## Usage
 
