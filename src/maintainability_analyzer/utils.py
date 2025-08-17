@@ -10,5 +10,6 @@ def guess_language(filepath):
         '.h': 'c',
         '.java': 'java',
         '.cs': 'csharp',
+        '.js': 'javascript',
     }
     return extension_map.get(extension)

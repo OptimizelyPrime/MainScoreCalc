@@ -3,6 +3,7 @@ from .parsers.python_parser import analyze_python_code
 from .parsers.cpp_parser import analyze_cpp_code
 from .parsers.java_parser import analyze_java_code
 from .parsers.csharp_parser import analyze_csharp_code
+from .parsers.javascript_parser import analyze_javascript_code
 from .utils import guess_language
 
 def analyze(source_code, language=None, filepath=None):
@@ -74,5 +75,16 @@ def analyze(source_code, language=None, filepath=None):
             method_line_counts,
         ) = analyze_csharp_code(source_code)
         return _function_metrics(method_decision_points, method_operators, method_operands, method_line_counts)
+    elif language == 'javascript':
+        (
+            _,
+            _,
+            _,
+            function_decision_points,
+            function_operators,
+            function_operands,
+            function_line_counts,
+        ) = analyze_javascript_code(source_code)
+        return _function_metrics(function_decision_points, function_operators, function_operands, function_line_counts)
     else:
         raise ValueError(f"Unsupported language: {language}")
