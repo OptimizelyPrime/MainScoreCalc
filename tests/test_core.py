@@ -22,18 +22,14 @@ class TestCore(unittest.TestCase):
         small = Metrics('a=1\n' * 20)
         small.analyze(operators, operands, 0)
 
-        mid = Metrics('a=1\n' * 21)
-        mid.analyze(operators, operands, 0)
+        medium = Metrics('a=1\n' * 40)
+        medium.analyze(operators, operands, 0)
 
-        large = Metrics('a=1\n' * 100)
+        large = Metrics('a=1\n' * 80)
         large.analyze(operators, operands, 0)
 
-        huge = Metrics('a=1\n' * 150)
-        huge.analyze(operators, operands, 0)
-
-        self.assertGreater(small.maintainability_index, mid.maintainability_index)
-        self.assertGreater(mid.maintainability_index, large.maintainability_index)
-        self.assertAlmostEqual(large.maintainability_index, huge.maintainability_index)
+        self.assertGreater(small.maintainability_index, medium.maintainability_index)
+        self.assertGreater(medium.maintainability_index, large.maintainability_index)
 
 if __name__ == "__main__":
     unittest.main()

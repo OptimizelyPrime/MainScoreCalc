@@ -33,23 +33,27 @@ class Metrics:
         self.cyclomatic_complexity = decision_points + 1
 
     def calculate_maintainability_index(self):
-        if self.halstead_volume <= 0:
-            # Avoid math domain error with log(0)
-            # A Halstead Volume of 0 indicates no code, so maintainability is high.
+        """
+        Calculate the maintainability index on a 0–100 scale using the
+        traditional formulation popularized by Microsoft:
+
+            MI = MAX(0, (171 - 5.2 * ln(V) - 0.23 * G - 16.2 * ln(L)) * 100 / 171)
+
+        ``V`` is the Halstead volume, ``G`` the cyclomatic complexity and ``L``
+        the number of lines of code. Larger values indicate more maintainable
+        code.
+        """
+        # Avoid math domain errors with log(0) by short‑circuiting empty inputs
+        if self.halstead_volume <= 0 or self.lines_of_code <= 0:
             self.maintainability_index = 100
             return
 
-        # Apply a piecewise penalty for lines of code
-        if self.lines_of_code <= 20:
-            loc_penalty = 0
-        elif self.lines_of_code <= 100:
-            weight = (self.lines_of_code - 20) / 80
-            loc_penalty = 16.2 * weight * math.log(self.lines_of_code)
-        else:
-            # Maximum penalty reached at 100 lines
-            loc_penalty = 16.2 * math.log(100)
-
-        mi = 171 - 5.2 * math.log(self.halstead_volume) - 0.23 * self.cyclomatic_complexity - loc_penalty
+        mi = (
+            171
+            - 5.2 * math.log(self.halstead_volume)
+            - 0.23 * self.cyclomatic_complexity
+            - 16.2 * math.log(self.lines_of_code)
+        )
         self.maintainability_index = max(0, mi * 100 / 171)
 
     def analyze(self, operators, operands, decision_points):
