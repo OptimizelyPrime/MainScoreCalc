@@ -83,3 +83,4 @@ The following languages and file extensions are supported:
 *   C (`.c`, `.h`)
 *   Java (`.java`)
 *   C# (`.cs`)
+*   JavaScript (`.js`)
