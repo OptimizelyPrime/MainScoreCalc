@@ -1,6 +1,6 @@
 
 import unittest
-from src.maintainability_analyzer.parsers.python_parser import analyze_python_code
+from src.maintainability_score_analyzer.parsers.python_parser import analyze_python_code
 
 class TestPythonParser(unittest.TestCase):
     def test_analyze_python_code(self):

@@ -1,4 +1,4 @@
-# Maintainability Analyzer
+# Maintainability Score Analyzer
 
 A command-line tool to analyze source code files and calculate maintainability metrics.
 
@@ -18,17 +18,17 @@ number of lines of code. Higher scores imply more maintainable code.
 
 ## Using as an Importable Module
 
-You can use `maintainability-analyzer` as a Python library in your own code after installing it:
+You can use `maintainability-score-analyzer` as a Python library in your own code after installing it:
 
 ```python
 # Import the analyze function from the installed package
-from maintainability_analyzer.core import analyze
+from maintainability_score_analyzer.core import analyze
 
 # Example 1: Analyze Python code by specifying the language
 source_code = """
 
 ```bash
-maintainability-analyzer path/to/your/code.c -l c
+maintainability-score-analyzer path/to/your/code.c -l c
 metrics = analyze(source_code, language='python')
 print(metrics)
 
@@ -45,12 +45,12 @@ If the language is not provided, the tool will try to guess it based on the file
 
 ## Library Usage
 
-You can also use `maintainability-analyzer` as a library in your Python code.
+You can also use `maintainability-score-analyzer` as a library in your Python code.
 
 First, import the `analyze` function:
 
 ```python
-from maintainability_analyzer import analyze
+from maintainability_score_analyzer import analyze
 ```
 
 Then, call the function with your source code. You can either specify the language explicitly, or provide a filepath to let the tool guess the language from the file extension.

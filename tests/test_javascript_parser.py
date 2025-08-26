@@ -1,5 +1,5 @@
 import unittest
-from src.maintainability_analyzer.parsers.javascript_parser import analyze_javascript_code
+from src.maintainability_score_analyzer.parsers.javascript_parser import analyze_javascript_code
 
 class TestJavaScriptParser(unittest.TestCase):
     def test_analyze_javascript_code(self):

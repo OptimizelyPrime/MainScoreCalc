@@ -1,5 +1,5 @@
 import unittest
-from src.maintainability_analyzer.parsers.java_parser import analyze_java_code
+from src.maintainability_score_analyzer.parsers.java_parser import analyze_java_code
 class TestJavaParser(unittest.TestCase):
     def test_analyze_java_code(self):
         code = (

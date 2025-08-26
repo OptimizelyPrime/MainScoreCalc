@@ -1,5 +1,5 @@
 import unittest
-from src.maintainability_analyzer.parsers.cpp_parser import analyze_cpp_code
+from src.maintainability_score_analyzer.parsers.cpp_parser import analyze_cpp_code
 class TestCPPParser(unittest.TestCase):
     def test_analyze_cpp_code(self):
         code = (
