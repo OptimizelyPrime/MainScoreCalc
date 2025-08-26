@@ -5,7 +5,7 @@ import os
 # Add src to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
-from maintainability_analyzer.parsers.csharp_parser import analyze_csharp_code
+from maintainability_score_analyzer.parsers.csharp_parser import analyze_csharp_code
 
 class TestCSharpParser(unittest.TestCase):
     def test_analyze_csharp_code(self):

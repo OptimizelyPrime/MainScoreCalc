@@ -11,7 +11,7 @@ To use this library with GitHub Copilot:
 
 1. Install the package in your Python environment:
 	```bash
-	pip install maintainability-analyzer
+	pip install maintainability-score-analyzer
 	```
 	Or, for the latest version from GitHub:
 	```bash
@@ -20,7 +20,7 @@ To use this library with GitHub Copilot:
 
 2. Import and use the main API in your code:
 	```python
-	from maintainability_analyzer import analyze
+	from maintainability_score_analyzer import analyze
 
 	source_code = """
 	def hello():

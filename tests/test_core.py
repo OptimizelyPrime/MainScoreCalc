@@ -1,5 +1,5 @@
 import unittest
-from src.maintainability_analyzer.core import Metrics
+from src.maintainability_score_analyzer.core import Metrics
 
 class TestCore(unittest.TestCase):
     def test_calculate_maintainability_index(self):

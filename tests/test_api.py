@@ -1,5 +1,5 @@
 import unittest
-from src.maintainability_analyzer import analyze
+from src.maintainability_score_analyzer import analyze
 
 class TestApi(unittest.TestCase):
     def test_analyze_python(self):
