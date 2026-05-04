@@ -1,2 +1,4 @@
 libclang
 javalang
+tree-sitter
+tree-sitter-c-sharp

@@ -1,75 +1,102 @@
 # Maintainability Analyzer
 
-A command-line tool to analyze source code files and calculate maintainability metrics.
+A Python library that computes source code maintainability metrics across
+multiple languages. Reports raw line counts, Halstead volume, cyclomatic +
+cognitive complexity, and structural metrics at file, class, and function
+scope, then combines them into a 0–100 maintainability index.
 
+## Installation
+
+```bash
+pip install maintainability-analyzer
+```
+
+Or from source:
+
+```bash
+pip install git+https://github.com/OptimizelyPrime/MainScoreCalc.git
 ```
 
 ## Usage
 
-## Using as an Importable Module
-
-You can use `maintainability-analyzer` as a Python library in your own code after installing it:
-
-```python
-# Import the analyze function from the installed package
-from maintainability_analyzer.core import analyze
-
-# Example 1: Analyze Python code by specifying the language
-source_code = """
-
-```bash
-maintainability-analyzer path/to/your/code.c -l c
-metrics = analyze(source_code, language='python')
-print(metrics)
-
-# Example 2: Analyze code and let the tool guess the language from the file extension
-source_code = "int main() { return 0; }"
-metrics = analyze(source_code, filepath='main.cpp')
-print(metrics)
-```
-
-The `analyze` function returns a dictionary with the calculated metrics. You can specify the language directly or let the tool infer it from the file extension using the `filepath` argument.
-```
-
-If the language is not provided, the tool will try to guess it based on the file extension.
-
-## Library Usage
-
-You can also use `maintainability-analyzer` as a library in your Python code.
-
-First, import the `analyze` function:
-
 ```python
 from maintainability_analyzer import analyze
-```
 
-Then, call the function with your source code. You can either specify the language explicitly, or provide a filepath to let the tool guess the language from the file extension.
-
-**Example 1: Specifying the language**
-```python
 source_code = """
-def hello_world():
-    print("Hello, World!")
+def hello():
+    print("Hello, world!")
 """
 
-metrics = analyze(source_code, language='python')
-print(metrics)
+metrics = analyze(source_code, language="python")
 ```
 
-**Example 2: Guessing the language from the filepath**
+You can either specify `language` explicitly or pass a `filepath` and let the
+language be inferred from the file extension:
+
 ```python
-source_code = "int main() { return 0; }"
-
-metrics = analyze(source_code, filepath='main.cpp')
-print(metrics)
+metrics = analyze(open("main.cpp").read(), filepath="main.cpp")
 ```
+
+## Output
+
+`analyze()` returns a dict with this shape:
+
+```python
+{
+    "language": "python",
+    "file": {
+        "raw": {
+            "loc": 12, "sloc": 10, "lloc": 8,
+            "comments": 1, "multi": 0, "blank": 2,
+            "comment_ratio": 0.1,
+        },
+        "halstead": {"volume": 38.0},
+        "complexity": {"cyclomatic": 5, "cognitive": 4},
+        "structural": {"max_nesting_depth": 2, "statement_count": 8},
+        "maintainability_index": 71.2,
+    },
+    "classes": {
+        "Calculator": {
+            "raw": {...}, "halstead": {...}, "complexity": {...},
+            "structural": {...}, "maintainability_index": 68.4,
+            "methods": ["add", "factorial"],
+        },
+    },
+    "functions": {
+        "factorial": {
+            "raw": {...}, "halstead": {...}, "complexity": {...},
+            "structural": {
+                "max_nesting_depth": 1, "statement_count": 3,
+                "parameter_count": 2, "return_count": 2,
+            },
+            "maintainability_index": 82.6,
+        },
+    },
+}
+```
+
+### Metric families
+
+- **Raw** — physical / source / logical line counts, comments, multi-line
+  string or block-comment lines, blank lines, and a derived comment ratio.
+- **Halstead** — Halstead volume (the base for the maintainability index
+  formula).
+- **Complexity** — cyclomatic complexity (decision points + 1) and Sonar-style
+  cognitive complexity (nesting-weighted, with +1 for direct recursion).
+- **Structural** — per-function: parameter count, explicit `return` count,
+  maximum nesting depth, and statement count. Aggregated to max / sum at
+  class and file scope.
 
 ## Supported Languages
 
-The following languages and file extensions are supported:
+| Language | Extension(s)    | Parser backend         |
+|----------|-----------------|------------------------|
+| Python   | `.py`           | stdlib `ast`           |
+| Java     | `.java`         | `javalang`             |
+| C        | `.c`, `.h`      | `libclang`             |
+| C++      | `.cpp`, `.hpp`  | `libclang`             |
+| C#       | `.cs`           | `tree-sitter-c-sharp`  |
 
-*   Python (`.py`)
-*   C++ (`.cpp`, `.hpp`)
-*   C (`.c`, `.h`)
-*   Java (`.java`)
-*   C# (`.cs`)
+## License
+
+See `LICENSE.txt` (if present) or the project's GitHub page.
