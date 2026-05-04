@@ -1,86 +1,133 @@
 # Maintainability Score Analyzer
 
-A command-line tool to analyze source code files and calculate maintainability metrics.
+A Python library that computes source code maintainability metrics across
+multiple languages. Reports raw line counts, Halstead volume, cyclomatic +
+cognitive complexity, and structural metrics at file, class, and function
+scope, then combines them into a 0–100 maintainability index.
 
-### Maintainability Index Formula
+## Installation
 
-The analyzer reports a maintainability index on a 0–100 scale using the
-standard definition popularized by Microsoft:
-
+```bash
+pip install maintainability-score-analyzer
 ```
-MI = MAX(0, (171 - 5.2 * ln(V) - 0.23 * G - 16.2 * ln(L)) * 100 / 171)
-```
 
-Where ``V`` is the Halstead volume, ``G`` the cyclomatic complexity and ``L`` the
-number of lines of code. Higher scores imply more maintainable code.
+Or from source:
+
+```bash
+pip install git+https://github.com/OptimizelyPrime/MainScoreCalc.git
+```
 
 ## Usage
 
-## Using as an Importable Module
-
-You can use `maintainability-score-analyzer` as a Python library in your own code after installing it:
-
-```python
-# Import the analyze function from the installed package
-from maintainability_score_analyzer.core import analyze
-
-# Example 1: Analyze Python code by specifying the language
-source_code = """
-
-```bash
-maintainability-score-analyzer path/to/your/code.c -l c
-metrics = analyze(source_code, language='python')
-print(metrics)
-
-# Example 2: Analyze code and let the tool guess the language from the file extension
-source_code = "int main() { return 0; }"
-metrics = analyze(source_code, filepath='main.cpp')
-print(metrics)
-```
-
-The `analyze` function returns a dictionary with the calculated metrics. You can specify the language directly or let the tool infer it from the file extension using the `filepath` argument.
-```
-
-If the language is not provided, the tool will try to guess it based on the file extension.
-
-## Library Usage
-
-You can also use `maintainability-score-analyzer` as a library in your Python code.
-
-First, import the `analyze` function:
-
 ```python
 from maintainability_score_analyzer import analyze
-```
 
-Then, call the function with your source code. You can either specify the language explicitly, or provide a filepath to let the tool guess the language from the file extension.
-
-**Example 1: Specifying the language**
-```python
 source_code = """
-def hello_world():
-    print("Hello, World!")
+def hello():
+    print("Hello, world!")
 """
 
-metrics = analyze(source_code, language='python')
-print(metrics)
+metrics = analyze(source_code, language="python")
 ```
 
-**Example 2: Guessing the language from the filepath**
-```python
-source_code = "int main() { return 0; }"
+You can either specify `language` explicitly or pass a `filepath` and let the
+language be inferred from the file extension:
 
-metrics = analyze(source_code, filepath='main.cpp')
-print(metrics)
+```python
+metrics = analyze(open("main.cpp").read(), filepath="main.cpp")
+```
+
+## Output
+
+`analyze()` returns a dict with this shape:
+
+```python
+{
+    "language": "python",
+    "file": {
+        "raw": {
+            "loc": 12, "sloc": 10, "lloc": 8,
+            "comments": 1, "multi": 0, "blank": 2,
+            "comment_ratio": 0.1,
+        },
+        "halstead": {"volume": 38.0},
+        "complexity": {"cyclomatic": 5, "cognitive": 4},
+        "structural": {"max_nesting_depth": 2, "statement_count": 8},
+        "maintainability_index": 71.2,
+    },
+    "classes": {
+        "Calculator": {
+            "raw": {...}, "halstead": {...}, "complexity": {...},
+            "structural": {...}, "maintainability_index": 68.4,
+            "methods": ["add", "factorial"],
+        },
+    },
+    "functions": {
+        "factorial": {
+            "raw": {...}, "halstead": {...}, "complexity": {...},
+            "structural": {
+                "max_nesting_depth": 1, "statement_count": 3,
+                "parameter_count": 2, "return_count": 2,
+            },
+            "maintainability_index": 82.6,
+        },
+    },
+}
+```
+
+### Metric families
+
+- **Raw** — physical / source / logical line counts, comments, multi-line
+  string or block-comment lines, blank lines, and a derived comment ratio.
+- **Halstead** — Halstead volume (the base for the maintainability index
+  formula).
+- **Complexity** — cyclomatic complexity (decision points + 1) and Sonar-style
+  cognitive complexity (nesting-weighted, with +1 for direct recursion). Both
+  feed into the maintainability index: `MI = 171 - 5.2·ln(V) - 0.23·cyclomatic
+  - 0.15·cognitive - 16.2·ln(LOC)`, clamped and normalized to 0–100.
+- **Structural** — per-function: parameter count, explicit `return` count,
+  maximum nesting depth, and statement count. Aggregated to max / sum at
+  class and file scope.
+
+## Errors
+
+`analyze()` raises subclasses of `AnalyzerError` on failure. Each is also a
+subclass of a stdlib exception so existing `except ValueError:` / `except
+ImportError:` handlers keep working.
+
+| Exception | When |
+|-----------|------|
+| `UnsupportedLanguageError` (`ValueError`) | `language` is not one of the supported names, or `filepath` has an extension we don't recognize, or neither argument was provided. Message lists the valid options. |
+| `ParseError` (`ValueError`) | The source code is syntactically invalid. Carries `language`, `line`, and `column` attributes. C/C++ and C# no longer silently return garbage metrics — malformed input raises this. |
+| `BackendUnavailableError` (`ImportError`) | The optional parser package for the requested language isn't installed. Message includes a `pip install` hint. Importing `maintainability_analyzer` itself does not require every backend. |
+| `TypeError` | `source_code` isn't a `str` (e.g. `bytes` was passed). |
+
+All four are importable from the top-level package:
+
+```python
+from maintainability_score_analyzer import (
+    analyze, AnalyzerError, ParseError,
+    UnsupportedLanguageError, BackendUnavailableError,
+)
 ```
 
 ## Supported Languages
 
-The following languages and file extensions are supported:
+The following languages are supported by `analyze()`:
 
-*   Python (`.py`)
-*   C++ (`.cpp`, `.hpp`)
-*   C (`.c`, `.h`)
-*   Java (`.java`)
-*   C# (`.cs`)
-*   JavaScript (`.js`)
+| Language | Extension(s)    | Parser backend         |
+|----------|-----------------|------------------------|
+| Python   | `.py`           | stdlib `ast`           |
+| Java     | `.java`         | `javalang`             |
+| C        | `.c`, `.h`      | `libclang`             |
+| C++      | `.cpp`, `.hpp`  | `libclang`             |
+| C#       | `.cs`           | `tree-sitter-c-sharp`  |
+
+> **Note:** A JavaScript parser (`javascript_parser.py`) exists in the package
+> but is not yet wired into `analyze()`. It exposes a standalone
+> `analyze_javascript_code()` function using the `esprima` backend and returns a
+> legacy 7-tuple rather than a `ParserResult`.
+
+## License
+
+See `LICENSE.txt` (if present) or the project's GitHub page.

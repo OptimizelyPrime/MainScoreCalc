@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls *)",
+      "Bash(awk '{print $2}')",
+      "Bash(python3 *)",
+      "Bash(python *)",
+      "Bash(.venv/Scripts/python.exe *)",
+      "Bash(pip install *)",
+      "Bash(pytest --tb=short)",
+      "Bash(pip show *)"
+    ]
+  }
+}

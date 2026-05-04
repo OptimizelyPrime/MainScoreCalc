@@ -1,3 +1,4 @@
 libclang
 javalang
-esprima
+tree-sitter
+tree-sitter-c-sharp

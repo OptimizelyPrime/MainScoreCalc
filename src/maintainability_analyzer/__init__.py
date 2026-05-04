@@ -1,10 +1,10 @@
-from .errors import (
+from maintainability_score_analyzer import (
     AnalyzerError,
     BackendUnavailableError,
     ParseError,
     UnsupportedLanguageError,
+    analyze,
 )
-from .parsers import analyze
 
 __all__ = [
     "analyze",

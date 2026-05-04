@@ -1,32 +1,82 @@
+import math
 import unittest
-from src.maintainability_score_analyzer.core import Metrics
 
-class TestCore(unittest.TestCase):
-    def test_calculate_maintainability_index(self):
-        # These are example values, not from a real code snippet
-        operators = ['=', '+', '*', 'if']
-        operands = ['a', 'b', 'c', 'd', '1']
-        decision_points = 1
+from maintainability_score_analyzer import analyze
+from maintainability_score_analyzer.metrics import (
+    ComplexityMetrics,
+    HalsteadMetrics,
+    RawMetrics,
+    ScopeMetrics,
+    StructuralMetrics,
+)
 
-        metrics = Metrics("a = b + c * d\nif a > 1:\n    pass")
-        metrics.analyze(operators, operands, decision_points)
 
-        # The exact value is not important here, just that it's a number between 0 and 100
-        self.assertGreaterEqual(metrics.maintainability_index, 0)
-        self.assertLessEqual(metrics.maintainability_index, 100)
+class TestScopeMetrics(unittest.TestCase):
+    def test_empty_scope_is_fully_maintainable(self):
+        s = ScopeMetrics()
+        self.assertEqual(s.maintainability_index, 100.0)
+
+    def test_maintainability_index_bounded(self):
+        s = ScopeMetrics(
+            raw=RawMetrics(loc=20, sloc=18, lloc=18, comments=0, multi=0, blank=2),
+            halstead=HalsteadMetrics(
+                operators=["=", "+", "*", "if"],
+                operands=["a", "b", "c", "d", "1"],
+            ),
+            complexity=ComplexityMetrics(cyclomatic=2),
+            structural=StructuralMetrics(),
+        )
+        mi = s.maintainability_index
+        self.assertGreaterEqual(mi, 0)
+        self.assertLessEqual(mi, 100)
+        self.assertFalse(math.isnan(mi))
+
+
+class TestAnalyzePythonShape(unittest.TestCase):
+    def test_returns_new_nested_shape(self):
+        src = "def foo():\n    return 1\n"
+        result = analyze(src, language="python")
+        self.assertEqual(result["language"], "python")
+        self.assertIn("file", result)
+        self.assertIn("classes", result)
+        self.assertIn("functions", result)
+        self.assertIn("foo", result["functions"])
+
+        func = result["functions"]["foo"]
+        for key in ("raw", "halstead", "complexity", "structural", "maintainability_index"):
+            self.assertIn(key, func)
+
+    def test_file_raw_counts_populated(self):
+        src = "# hello\ndef foo():\n    return 1\n\n"
+        raw = analyze(src, language="python")["file"]["raw"]
+        self.assertEqual(raw["loc"], 4)
+        self.assertEqual(raw["comments"], 1)
+        self.assertEqual(raw["blank"], 1)
+        self.assertGreater(raw["sloc"], 0)
+
 
     def test_lines_of_code_penalty(self):
-        operators = ['=']
-        operands = ['1']
+        halstead = HalsteadMetrics(operators=['='], operands=['1'])
+        complexity = ComplexityMetrics(cyclomatic=1)
 
-        small = Metrics('a=1\n' * 20)
-        small.analyze(operators, operands, 0)
-
-        medium = Metrics('a=1\n' * 40)
-        medium.analyze(operators, operands, 0)
-
-        large = Metrics('a=1\n' * 80)
-        large.analyze(operators, operands, 0)
+        small = ScopeMetrics(
+            raw=RawMetrics(loc=20, sloc=20, lloc=20, comments=0, multi=0, blank=0),
+            halstead=halstead,
+            complexity=complexity,
+            structural=StructuralMetrics(),
+        )
+        medium = ScopeMetrics(
+            raw=RawMetrics(loc=40, sloc=40, lloc=40, comments=0, multi=0, blank=0),
+            halstead=halstead,
+            complexity=complexity,
+            structural=StructuralMetrics(),
+        )
+        large = ScopeMetrics(
+            raw=RawMetrics(loc=80, sloc=80, lloc=80, comments=0, multi=0, blank=0),
+            halstead=halstead,
+            complexity=complexity,
+            structural=StructuralMetrics(),
+        )
 
         self.assertGreater(small.maintainability_index, medium.maintainability_index)
         self.assertGreater(medium.maintainability_index, large.maintainability_index)

@@ -8,6 +8,8 @@ setup(
     install_requires=[
         "libclang",
         "javalang",
+        "tree-sitter>=0.23",
+        "tree-sitter-c-sharp>=0.23",
     ],
     include_package_data=True,
     package_data={
