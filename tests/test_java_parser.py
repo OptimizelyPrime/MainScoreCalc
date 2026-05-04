@@ -1,5 +1,5 @@
 import unittest
-from src.maintainability_analyzer.parsers.java_parser import analyze_java_code
+from src.maintainability_score_analyzer.parsers.java_parser import analyze_java_code
 class TestJavaParser(unittest.TestCase):
     def test_analyze_java_code(self):
         code = (
@@ -13,9 +13,17 @@ class TestJavaParser(unittest.TestCase):
             "    }\n"
             "}\n"
         )
-        operators, operands, total_decision_points, method_decision_points, method_operators, method_operands = analyze_java_code(code)
+        (
+            operators,
+            operands,
+            total_decision_points,
+            method_decision_points,
+            method_operators,
+            method_operands,
+            method_line_counts,
+        ) = analyze_java_code(code)
 
-        print('DEBUG analyze_java_code:', operators, operands, total_decision_points, method_decision_points, method_operators, method_operands)
+        print('DEBUG analyze_java_code:', operators, operands, total_decision_points, method_decision_points, method_operators, method_operands, method_line_counts)
 
         # Check per-method metrics only
         self.assertIn('factorial', method_decision_points)
@@ -27,6 +35,8 @@ class TestJavaParser(unittest.TestCase):
         self.assertIn('-', method_operators['factorial'])
         self.assertIn('factorial', method_operands['factorial'])
         self.assertIn('n', method_operands['factorial'])
+        self.assertIn('factorial', method_line_counts)
+        self.assertEqual(method_line_counts['factorial'], 7)
 
 if __name__ == "__main__":
     unittest.main()

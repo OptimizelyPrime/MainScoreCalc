@@ -1,4 +1,4 @@
-# Maintainability Analyzer
+# Maintainability Score Analyzer
 
 A Python library that computes source code maintainability metrics across
 multiple languages. Reports raw line counts, Halstead volume, cyclomatic +

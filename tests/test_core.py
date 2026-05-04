@@ -55,5 +55,21 @@ class TestAnalyzePythonShape(unittest.TestCase):
         self.assertGreater(raw["sloc"], 0)
 
 
+    def test_lines_of_code_penalty(self):
+        operators = ['=']
+        operands = ['1']
+
+        small = Metrics('a=1\n' * 20)
+        small.analyze(operators, operands, 0)
+
+        medium = Metrics('a=1\n' * 40)
+        medium.analyze(operators, operands, 0)
+
+        large = Metrics('a=1\n' * 80)
+        large.analyze(operators, operands, 0)
+
+        self.assertGreater(small.maintainability_index, medium.maintainability_index)
+        self.assertGreater(medium.maintainability_index, large.maintainability_index)
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="maintainability-analyzer",
+    name="maintainability-score-analyzer",
     version="0.1",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
@@ -13,7 +13,7 @@ setup(
     ],
     include_package_data=True,
     package_data={
-        "maintainability_analyzer": ["copilot_instructions.txt"],
+        "maintainability_score_analyzer": ["copilot_instructions.txt"],
     },
     # CLI functionality removed
 )

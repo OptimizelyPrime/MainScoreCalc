@@ -1,16 +1,17 @@
-
 import unittest
-from src.maintainability_score_analyzer.parsers.python_parser import analyze_python_code
+from src.maintainability_score_analyzer.parsers.javascript_parser import analyze_javascript_code
 
-class TestPythonParser(unittest.TestCase):
-    def test_analyze_python_code(self):
-        code = (
-            "def factorial(n):\n"
-            "    if n == 0:\n"
-            "        return 1\n"
-            "    else:\n"
-            "        return n * factorial(n - 1)\n"
-        )
+class TestJavaScriptParser(unittest.TestCase):
+    def test_analyze_javascript_code(self):
+        code = """
+        function factorial(n) {
+            if (n === 0) {
+                return 1;
+            } else {
+                return n * factorial(n - 1);
+            }
+        }
+        """
         (
             operators,
             operands,
@@ -19,22 +20,21 @@ class TestPythonParser(unittest.TestCase):
             function_operators,
             function_operands,
             function_line_counts,
-        ) = analyze_python_code(code)
+        ) = analyze_javascript_code(code)
 
-        # Check per-function metrics only
         self.assertIn('factorial', function_decision_points)
         self.assertEqual(function_decision_points['factorial'], 2)
         self.assertIn('factorial', function_operators)
         self.assertIn('factorial', function_operands)
-        self.assertIn('Eq', function_operators['factorial'])
-        self.assertIn('Sub', function_operators['factorial'])
-        self.assertIn('Mult', function_operators['factorial'])
+        self.assertIn('===', function_operators['factorial'])
+        self.assertIn('-', function_operators['factorial'])
+        self.assertIn('*', function_operators['factorial'])
         self.assertIn('factorial', function_operands['factorial'])
         self.assertIn('n', function_operands['factorial'])
         self.assertIn(0, function_operands['factorial'])
         self.assertIn(1, function_operands['factorial'])
         self.assertIn('factorial', function_line_counts)
-        self.assertEqual(function_line_counts['factorial'], 5)
+        self.assertEqual(function_line_counts['factorial'], 7)
 
 if __name__ == "__main__":
     unittest.main()
