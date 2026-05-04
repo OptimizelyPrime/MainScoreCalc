@@ -14,6 +14,7 @@ import sys
 
 from clang import cindex
 
+from ..errors import ParseError
 from ..raw import CommentStyle, count_raw_lines, slice_lines
 from .base import ParserResult, Scope
 
@@ -238,8 +239,27 @@ def parse_cpp(source_code: str, lang: str = "cpp") -> ParserResult:
     filename = "tmp.cpp" if lang == "cpp" else "tmp.c"
     tu = index.parse(filename, args=_clang_args(lang),
                      unsaved_files=[(filename, source_code)])
-    # Note: we intentionally do not print diagnostics; callers who want them
-    # can parse directly. Header-missing warnings are expected on Windows.
+    # Surface fatal / error diagnostics from the source itself. Warnings (e.g.
+    # missing stdlib headers on Windows) are still tolerated — we care about
+    # diagnostics whose file is the main TU, which rules out header-level
+    # issues inside included files.
+    errors = [
+        d for d in tu.diagnostics
+        if d.severity >= cindex.Diagnostic.Error
+        and d.location.file is not None
+        and d.location.file.name == filename
+    ]
+    if errors:
+        first = errors[0]
+        count = len(errors)
+        prefix = f"{count} parse errors, first" if count > 1 else "parse error"
+        raise ParseError(
+            f"{lang}: {prefix} at line {first.location.line}, "
+            f"column {first.location.column}: {first.spelling}",
+            language=lang,
+            line=first.location.line,
+            column=first.location.column,
+        )
     w = _Walker(source_code)
     # Only walk cursors from the main translation unit — otherwise stdlib
     # headers pulled in via #include pollute the results with hundreds of

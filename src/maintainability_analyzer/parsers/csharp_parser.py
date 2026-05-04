@@ -10,6 +10,7 @@ from __future__ import annotations
 from tree_sitter import Language, Parser
 import tree_sitter_c_sharp as _tscs
 
+from ..errors import ParseError
 from ..raw import CommentStyle, count_raw_lines, slice_lines
 from .base import ParserResult, Scope
 
@@ -290,6 +291,22 @@ class _Walker:
 
 def parse_csharp(source_code: str) -> ParserResult:
     tree = _PARSER.parse(source_code.encode("utf-8"))
+    if tree.root_node.has_error:
+        err = _first_error_node(tree.root_node)
+        if err is not None:
+            # tree-sitter uses 0-indexed (row, col); normalize to 1-indexed.
+            line = err.start_point[0] + 1
+            column = err.start_point[1] + 1
+            raise ParseError(
+                f"csharp: parse error at line {line}, column {column}",
+                language="csharp",
+                line=line,
+                column=column,
+            )
+        raise ParseError(
+            "csharp: parse error (tree contains ERROR nodes)",
+            language="csharp",
+        )
     w = _Walker(source_code)
     w.walk(tree.root_node)
     return ParserResult(
@@ -298,6 +315,22 @@ def parse_csharp(source_code: str) -> ParserResult:
         classes=w.classes,
         functions=w.functions,
     )
+
+
+def _first_error_node(node):
+    """Depth-first search for the first ERROR or MISSING node in a tree-sitter
+    tree. Returns None if no error node is found (shouldn't happen when
+    ``has_error`` is True, but we guard anyway)."""
+    stack = [node]
+    while stack:
+        n = stack.pop()
+        if n.type == "ERROR" or n.is_missing:
+            return n
+        # Push children in reverse so we visit them left-to-right.
+        for child in reversed(n.children):
+            if child.has_error or child.type == "ERROR" or child.is_missing:
+                stack.append(child)
+    return None
 
 
 def analyze_csharp_code(source_code):

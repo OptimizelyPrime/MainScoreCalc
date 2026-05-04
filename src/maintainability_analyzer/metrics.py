@@ -105,6 +105,7 @@ class ScopeMetrics:
             171
             - 5.2 * math.log(volume)
             - 0.23 * self.complexity.cyclomatic
+            - 0.15 * self.complexity.cognitive
             - 16.2 * math.log(loc)
         )
         return max(0.0, mi * 100 / 171)

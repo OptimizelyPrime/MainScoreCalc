@@ -1,9 +1,8 @@
 """Sanity-check Python metrics against radon on the shared Python fixture.
 
-The MI formula is identical (standard 171-based, normalized to 0-100) and raw
-line counting follows the same conventions, so values should be close. We
-allow small deltas for edge-line counting differences and different Halstead
-token sets.
+Raw line counting and cyclomatic complexity should stay close to radon. MI is
+intentionally not compared: our formula penalizes cognitive complexity in
+addition to cyclomatic, so it diverges from radon's MI by design.
 """
 
 from __future__ import annotations
@@ -16,7 +15,6 @@ from maintainability_analyzer import analyze
 
 radon_raw = pytest.importorskip("radon.raw")
 radon_complexity = pytest.importorskip("radon.complexity")
-radon_metrics = pytest.importorskip("radon.metrics")
 
 
 FIXTURE = Path(__file__).parent / "fixtures" / "sample.py"
@@ -57,14 +55,3 @@ def test_cyclomatic_complexity_matches_radon():
                 f"cyclomatic mismatch for {name}: ours="
                 f"{ours['functions'][short]['complexity']['cyclomatic']} radon={cc}"
             )
-
-
-def test_maintainability_index_close_to_radon():
-    src = FIXTURE.read_text(encoding="utf-8")
-    ours_mi = analyze(src, language="python")["file"]["maintainability_index"]
-    theirs_mi = radon_metrics.mi_visit(src, multi=True)
-    # Both use the same formula; small deltas come from raw-line counting
-    # differences. 5 points on the 0-100 scale is ample headroom.
-    assert abs(ours_mi - theirs_mi) <= 5.0, (
-        f"MI drift too large: ours={ours_mi:.2f} radon={theirs_mi:.2f}"
-    )

@@ -104,6 +104,38 @@ def test_csharp_fixture():
     assert fact["structural"]["return_count"] == 2
 
 
+def test_cognitive_complexity_lowers_maintainability_index():
+    """Two functions with matched cyclomatic/LOC but different nesting should
+    receive different MI scores, because the formula now penalizes cognitive
+    complexity alongside cyclomatic."""
+    flat_src = (
+        "def flat(a, b, c):\n"
+        "    if a:\n"
+        "        return 1\n"
+        "    if b:\n"
+        "        return 2\n"
+        "    if c:\n"
+        "        return 3\n"
+        "    return 0\n"
+    )
+    nested_src = (
+        "def nested(a, b, c):\n"
+        "    if a:\n"
+        "        if b:\n"
+        "            if c:\n"
+        "                return 3\n"
+        "            return 2\n"
+        "        return 1\n"
+        "    return 0\n"
+    )
+    flat = analyze(flat_src, language="python")["functions"]["flat"]
+    nested = analyze(nested_src, language="python")["functions"]["nested"]
+
+    assert flat["complexity"]["cyclomatic"] == nested["complexity"]["cyclomatic"]
+    assert nested["complexity"]["cognitive"] > flat["complexity"]["cognitive"]
+    assert nested["maintainability_index"] < flat["maintainability_index"]
+
+
 def test_file_raw_counts_nonzero_across_languages():
     for lang, filename in [
         ("python", "sample.py"),

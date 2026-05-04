@@ -82,10 +82,34 @@ metrics = analyze(open("main.cpp").read(), filepath="main.cpp")
 - **Halstead** — Halstead volume (the base for the maintainability index
   formula).
 - **Complexity** — cyclomatic complexity (decision points + 1) and Sonar-style
-  cognitive complexity (nesting-weighted, with +1 for direct recursion).
+  cognitive complexity (nesting-weighted, with +1 for direct recursion). Both
+  feed into the maintainability index: `MI = 171 - 5.2·ln(V) - 0.23·cyclomatic
+  - 0.15·cognitive - 16.2·ln(LOC)`, clamped and normalized to 0–100.
 - **Structural** — per-function: parameter count, explicit `return` count,
   maximum nesting depth, and statement count. Aggregated to max / sum at
   class and file scope.
+
+## Errors
+
+`analyze()` raises subclasses of `AnalyzerError` on failure. Each is also a
+subclass of a stdlib exception so existing `except ValueError:` / `except
+ImportError:` handlers keep working.
+
+| Exception | When |
+|-----------|------|
+| `UnsupportedLanguageError` (`ValueError`) | `language` is not one of the supported names, or `filepath` has an extension we don't recognize, or neither argument was provided. Message lists the valid options. |
+| `ParseError` (`ValueError`) | The source code is syntactically invalid. Carries `language`, `line`, and `column` attributes. C/C++ and C# no longer silently return garbage metrics — malformed input raises this. |
+| `BackendUnavailableError` (`ImportError`) | The optional parser package for the requested language isn't installed. Message includes a `pip install` hint. Importing `maintainability_analyzer` itself does not require every backend. |
+| `TypeError` | `source_code` isn't a `str` (e.g. `bytes` was passed). |
+
+All four are importable from the top-level package:
+
+```python
+from maintainability_analyzer import (
+    analyze, AnalyzerError, ParseError,
+    UnsupportedLanguageError, BackendUnavailableError,
+)
+```
 
 ## Supported Languages
 
