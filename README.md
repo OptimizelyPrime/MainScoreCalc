@@ -8,7 +8,7 @@ scope, then combines them into a 0–100 maintainability index.
 ## Installation
 
 ```bash
-pip install maintainability-analyzer
+pip install maintainability-score-analyzer
 ```
 
 Or from source:
@@ -20,7 +20,7 @@ pip install git+https://github.com/OptimizelyPrime/MainScoreCalc.git
 ## Usage
 
 ```python
-from maintainability_analyzer import analyze
+from maintainability_score_analyzer import analyze
 
 source_code = """
 def hello():
@@ -105,13 +105,15 @@ ImportError:` handlers keep working.
 All four are importable from the top-level package:
 
 ```python
-from maintainability_analyzer import (
+from maintainability_score_analyzer import (
     analyze, AnalyzerError, ParseError,
     UnsupportedLanguageError, BackendUnavailableError,
 )
 ```
 
 ## Supported Languages
+
+The following languages are supported by `analyze()`:
 
 | Language | Extension(s)    | Parser backend         |
 |----------|-----------------|------------------------|
@@ -120,6 +122,11 @@ from maintainability_analyzer import (
 | C        | `.c`, `.h`      | `libclang`             |
 | C++      | `.cpp`, `.hpp`  | `libclang`             |
 | C#       | `.cs`           | `tree-sitter-c-sharp`  |
+
+> **Note:** A JavaScript parser (`javascript_parser.py`) exists in the package
+> but is not yet wired into `analyze()`. It exposes a standalone
+> `analyze_javascript_code()` function using the `esprima` backend and returns a
+> legacy 7-tuple rather than a `ParserResult`.
 
 ## License
 
