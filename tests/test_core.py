@@ -59,13 +59,13 @@ class TestAnalyzePythonShape(unittest.TestCase):
         operators = ['=']
         operands = ['1']
 
-        small = Metrics('a=1\n' * 20)
+        small = RawMetrics('a=1\n' * 20)
         small.analyze(operators, operands, 0)
 
-        medium = Metrics('a=1\n' * 40)
+        medium = RawMetrics('a=1\n' * 40)
         medium.analyze(operators, operands, 0)
 
-        large = Metrics('a=1\n' * 80)
+        large = RawMetrics('a=1\n' * 80)
         large.analyze(operators, operands, 0)
 
         self.assertGreater(small.maintainability_index, medium.maintainability_index)
