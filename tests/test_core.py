@@ -1,8 +1,8 @@
 import math
 import unittest
 
-from maintainability_analyzer import analyze
-from maintainability_analyzer.metrics import (
+from maintainability_score_analyzer import analyze
+from maintainability_score_analyzer.metrics import (
     ComplexityMetrics,
     HalsteadMetrics,
     RawMetrics,
@@ -56,17 +56,27 @@ class TestAnalyzePythonShape(unittest.TestCase):
 
 
     def test_lines_of_code_penalty(self):
-        operators = ['=']
-        operands = ['1']
+        halstead = HalsteadMetrics(operators=['='], operands=['1'])
+        complexity = ComplexityMetrics(cyclomatic=1)
 
-        small = RawMetrics('a=1\n' * 20)
-        small.analyze(operators, operands, 0)
-
-        medium = RawMetrics('a=1\n' * 40)
-        medium.analyze(operators, operands, 0)
-
-        large = RawMetrics('a=1\n' * 80)
-        large.analyze(operators, operands, 0)
+        small = ScopeMetrics(
+            raw=RawMetrics(loc=20, sloc=20, lloc=20, comments=0, multi=0, blank=0),
+            halstead=halstead,
+            complexity=complexity,
+            structural=StructuralMetrics(),
+        )
+        medium = ScopeMetrics(
+            raw=RawMetrics(loc=40, sloc=40, lloc=40, comments=0, multi=0, blank=0),
+            halstead=halstead,
+            complexity=complexity,
+            structural=StructuralMetrics(),
+        )
+        large = ScopeMetrics(
+            raw=RawMetrics(loc=80, sloc=80, lloc=80, comments=0, multi=0, blank=0),
+            halstead=halstead,
+            complexity=complexity,
+            structural=StructuralMetrics(),
+        )
 
         self.assertGreater(small.maintainability_index, medium.maintainability_index)
         self.assertGreater(medium.maintainability_index, large.maintainability_index)
