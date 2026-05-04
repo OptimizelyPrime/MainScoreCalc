@@ -1,6 +1,18 @@
-import esprima
+try:
+    import esprima
+except ImportError:  # pragma: no cover - exercised only when optional dep missing
+    esprima = None
+
+
+def _require_esprima():
+    if esprima is None:
+        raise ImportError(
+            "JavaScript parsing requires the optional 'esprima' package. "
+            "Install it with: pip install esprima"
+        )
 
 def analyze_javascript_code(source_code):
+    _require_esprima()
     tree = esprima.parseScript(source_code, loc=True)
     parser = JavaScriptParser(source_code)
     parser.visit(tree)

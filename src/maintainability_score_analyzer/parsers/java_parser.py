@@ -93,8 +93,23 @@ class _Walker:
         """Extract (start, end) line numbers from a javalang node if available."""
         start = getattr(node, "position", None)
         start_line = start.line if start else None
-        # javalang does not track end lines; approximate via token walk (skip).
         return start_line, None
+
+    def _find_end_line(self, start_line: int) -> int | None:
+        """Find the closing brace of the block starting at start_line via brace matching."""
+        lines = self.source.splitlines()
+        depth = 0
+        found_open = False
+        for i, line in enumerate(lines[start_line - 1:], start=start_line):
+            for ch in line:
+                if ch == '{':
+                    depth += 1
+                    found_open = True
+                elif ch == '}':
+                    depth -= 1
+                    if found_open and depth == 0:
+                        return i
+        return None
 
     def _scope_raw(self, scope: Scope):
         if scope.start_line and scope.end_line:
@@ -209,6 +224,8 @@ class _Walker:
             self._scope_stack.pop()
             self._nesting.pop()
             self._current_func_names.pop()
+            if scope.start_line and scope.end_line is None:
+                scope.end_line = self._find_end_line(scope.start_line)
             self._scope_raw(scope)
 
 
@@ -225,12 +242,13 @@ def parse_java(source_code: str) -> ParserResult:
 
 
 def analyze_java_code(source_code):
-    """Legacy 6-tuple interface kept for existing tests."""
+    """Legacy 7-tuple interface kept for existing tests."""
     result = parse_java(source_code)
     file = result.file
     per_func_dp = {n: s.cyclomatic for n, s in result.functions.items()}
     per_func_ops = {n: list(s.operators) for n, s in result.functions.items()}
     per_func_opr = {n: list(s.operands) for n, s in result.functions.items()}
+    per_func_lc = {n: (s.raw.loc if s.raw else 0) for n, s in result.functions.items()}
     total_dp = sum(per_func_dp.values()) if per_func_dp else file.cyclomatic
     return (
         list(file.operators),
@@ -239,4 +257,5 @@ def analyze_java_code(source_code):
         per_func_dp,
         per_func_ops,
         per_func_opr,
+        per_func_lc,
     )

@@ -334,12 +334,13 @@ def _first_error_node(node):
 
 
 def analyze_csharp_code(source_code):
-    """Legacy 6-tuple interface kept for existing tests."""
+    """Legacy 7-tuple interface kept for existing tests."""
     result = parse_csharp(source_code)
     file = result.file
     per_func_dp = {n: s.cyclomatic for n, s in result.functions.items()}
     per_func_ops = {n: list(s.operators) for n, s in result.functions.items()}
     per_func_opr = {n: list(s.operands) for n, s in result.functions.items()}
+    per_func_lc = {n: (s.raw.loc if s.raw else 0) for n, s in result.functions.items()}
     total_dp = sum(per_func_dp.values()) if per_func_dp else file.cyclomatic
     return (
         list(file.operators),
@@ -348,4 +349,5 @@ def analyze_csharp_code(source_code):
         per_func_dp,
         per_func_ops,
         per_func_opr,
+        per_func_lc,
     )
